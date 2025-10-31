@@ -67,10 +67,10 @@ lazy_static! {
         .into_iter()
         .map(|token| token.chars().collect())
         .collect();
-    static ref QUOTES: Vec<Vec<char>> = ["'", "\""]
-        .into_iter()
-        .map(|token| token.chars().collect())
-        .collect();
+    // static ref QUOTES: Vec<Vec<char>> = ["'", "\""]
+    //     .into_iter()
+    //     .map(|token| token.chars().collect())
+    //     .collect();
     static ref KEYWORDS: Vec<Vec<char>> = [
         "candle",
         "end",
@@ -87,35 +87,37 @@ impl Token<Vec<char>> {
     pub fn starts_with(mut input_ref: &[char]) -> (&[char], Option<Self>) {
         match input_ref[0] {
             // SEARCH FOR Token::Num
-            ('0'..='9' | '.') => for (i, _) in input_ref.iter().enumerate() {
-                let (j, d_option) = (i + 1, input_ref.get(i + 1));
-                match d_option {
-                    Some('0'..='9' | '.') => continue,
-                    _ => return (&input_ref[j..], Some(Self::Num(input_ref[..j].to_vec()))),
+            '0'..='9' | '.' => {
+                for (i, c) in input_ref[1..].iter().enumerate() {
+                    match c {
+                        '0'..='9' | '.' => continue,
+                        _ => return (&input_ref[i..], Some(Self::Num(input_ref[..i].to_vec()))),
+                    }
                 }
-            }
+                return (&[], None);
+            },
             // SEARCH FOR Token::Str
-            '"' | '\'' => for (i, _) in input_ref.iter().enumerate() {
-                let (j, d_option) = (i + 1, input_ref.get(i + 1));
-                match d_option {
-                    Some('"') => return (&input_ref[j..], Some(Self::Str(input_ref[..j].to_vec()))),
-                    None => {
-                        eprintln!("Error: quotation mark never closed. - Iscra-chan. (>_<)");
-                        std::process::exit(-1);
+            '"' | '\'' => {
+                for (i, c) in input_ref.iter().enumerate() {
+                    if c == &input_ref[0] {
+                        return (&input_ref[i+1..], Some(Self::Str(input_ref[..i+1].to_vec())));
                     }
-                    _ => continue,
                 }
-            }
+                eprintln!("Error: quotation mark never closed. - Iscra-chan. (>_<)");
+                std::process::exit(-1);
+            },
             // SEARCH FOR Token::Var
-            '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я' =>
-                for (i, _) in input_ref.iter().enumerate() {
-                    let (j, d_option) = (i + 1, input_ref.get(i + 1));
-                    match d_option {
-                        Some('0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я') => continue,
-                        _ => return (&input_ref[j..], Some(Self::Var(input_ref[..j].to_vec()))),
+            '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я' => {
+                for (i, c) in input_ref.iter().enumerate() {
+                    match c {
+                        '0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я' => continue,
+                        _ => return (&input_ref[i..], Some(Self::Var(input_ref[..i].to_vec()))),
                     }
                 }
-        }
+                return (&[], None);
+            },
+            _ => {},
+        };
         (input_ref, None)
     }
 
