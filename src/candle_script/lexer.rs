@@ -103,7 +103,7 @@ impl Token<Vec<char>> {
             '"' | '\'' => {
                 for (i, c) in input_ref.iter().enumerate().skip(1) {
                     if c == &input_ref[0] {
-                        return (&input_ref[i+1..], Ok(Self::Str(input_ref[..i+1].to_vec())));
+                        return (&input_ref[i+1..], Ok(Self::Str(input_ref[1..i].to_vec())));
                     }
                 }
                 return (&[], Err("Error: quotation mark never closed. - Iscra-chan. (>_<)".to_string()));
