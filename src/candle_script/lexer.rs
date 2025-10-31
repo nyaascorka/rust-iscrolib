@@ -55,6 +55,7 @@ lazy_static! {
         ">=", "<=", ">", "<", "==", "!=",
         "=",
         "add", "sub", "mul", "div",
+        ",",
     ]
         .into_iter()
         .map(|token| token.chars().collect())
