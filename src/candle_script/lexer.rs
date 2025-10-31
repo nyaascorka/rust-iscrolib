@@ -88,7 +88,8 @@ impl Token<Vec<char>> {
         match input_ref[0] {
             // SEARCH FOR Token::Num
             '0'..='9' | '.' => {
-                for (i, c) in input_ref.iter().enumerate().skip(1) {
+                for (i, c) in input_ref.iter().enumerate().skip(1)
+                {
                     match c {
                         '0'..='9' | '.' => continue,
                         _ => return (&input_ref[i..], Ok(Self::Num(input_ref[..i].to_vec()))),
