@@ -130,7 +130,7 @@ impl Token<Vec<char>> {
         'find_another_token:
         while (!input_ref.is_empty()) {
             // <ONLY-FOR-DEBUG>
-            println!("{0:#?}", tokens_vec);
+            // println!("{0:#?}", tokens_vec);
             // </ONLY-FOR-DEBUG>
 
             /*
@@ -153,42 +153,52 @@ impl Token<Vec<char>> {
             * BUILT-IN-CORE TOKENS, WHICH ARE A PART OF Token::Var:
             */
             for core_vals in CORE_VALS.iter() {
-                if input_ref.starts_with(core_vals) {
-                    input_ref = &input_ref[core_vals.len()..];
-                    tokens_vec.push(Self::Var(core_vals.clone()));
-                    continue 'find_another_token;
+                if !input_ref.starts_with(core_vals) {continue;}
+                match input_ref.get(core_vals.len()) {
+                    Some('0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я') => continue,
+                    _ => {},
                 }
+                input_ref = &input_ref[core_vals.len()..];
+                tokens_vec.push(Self::Var(core_vals.clone()));
+                continue 'find_another_token;
             }
             /*
             * AUXILIARY TOKENS (ALL THOSE THAT ARE NOT Token::Atom)
             */
             for op in OPS.iter() {
-                if input_ref.starts_with(op) {
-                    input_ref = &input_ref[op.len()..];
-                    tokens_vec.push(Self::Op(op.clone()));
-                    continue 'find_another_token;
+                if !input_ref.starts_with(op) {continue;}
+                match (op.last(), input_ref.get(op.len())) {
+                    (
+                        Some('0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я'),
+                        Some('0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я'),
+                    ) => continue,
+                    _ => {},
                 }
+                input_ref = &input_ref[op.len()..];
+                tokens_vec.push(Self::Op(op.clone()));
+                continue 'find_another_token;
             }
             for lbr in LBRS.iter() {
-                if input_ref.starts_with(lbr) {
-                    input_ref = &input_ref[lbr.len()..];
-                    tokens_vec.push(Self::LBr(lbr.clone()));
-                    continue 'find_another_token;
-                }
+                if !input_ref.starts_with(lbr) {continue;}
+                input_ref = &input_ref[lbr.len()..];
+                tokens_vec.push(Self::LBr(lbr.clone()));
+                continue 'find_another_token;
             }
             for rbr in RBRS.iter() {
-                if input_ref.starts_with(rbr) {
-                    input_ref = &input_ref[rbr.len()..];
-                    tokens_vec.push(Self::RBr(rbr.clone()));
-                    continue 'find_another_token;
-                }
+                if !input_ref.starts_with(rbr) {continue;}
+                input_ref = &input_ref[rbr.len()..];
+                tokens_vec.push(Self::RBr(rbr.clone()));
+                continue 'find_another_token;
             }
             for keyword in KEYWORDS.iter() {
-                if input_ref.starts_with(keyword) {
-                    input_ref = &input_ref[keyword.len()..];
-                    tokens_vec.push(Self::Keyword(keyword.clone()));
-                    continue 'find_another_token;
+                if !input_ref.starts_with(keyword) {continue;}
+                match input_ref.get(keyword.len()) {
+                    Some('0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я') => continue,
+                    _ => {},
                 }
+                input_ref = &input_ref[keyword.len()..];
+                tokens_vec.push(Self::Keyword(keyword.clone()));
+                continue 'find_another_token;
             }
 
             /*
