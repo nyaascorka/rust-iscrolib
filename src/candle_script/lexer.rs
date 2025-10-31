@@ -83,42 +83,43 @@ lazy_static! {
 }
 
 impl Token<Vec<char>> {
-    // Some(Token::[Num, Str, Var]) or None
-    pub fn starts_with(mut input_ref: &[char]) -> (&[char], Option<Self>) {
+    // Ok(Token::[Num, Str, Var]) or Err(String)
+    pub fn starts_with(mut input_ref: &[char]) -> (&[char], Result<Self, String>) {
         match input_ref[0] {
             // SEARCH FOR Token::Num
             '0'..='9' | '.' => {
-                for (i, c) in input_ref[1..].iter().enumerate() {
+                for (i, c) in input_ref.iter().enumerate().skip(1) {
                     match c {
                         '0'..='9' | '.' => continue,
-                        _ => return (&input_ref[i..], Some(Self::Num(input_ref[..i].to_vec()))),
+                        _ => return (&input_ref[i..], Ok(Self::Num(input_ref[..i].to_vec()))),
                     }
                 }
-                return (&[], None);
+                return (&[], Ok(Self::Num(input_ref.to_vec())));
             },
+
             // SEARCH FOR Token::Str
             '"' | '\'' => {
-                for (i, c) in input_ref.iter().enumerate() {
+                for (i, c) in input_ref.iter().enumerate().skip(1) {
                     if c == &input_ref[0] {
-                        return (&input_ref[i+1..], Some(Self::Str(input_ref[..i+1].to_vec())));
+                        return (&input_ref[i+1..], Ok(Self::Str(input_ref[..i+1].to_vec())));
                     }
                 }
-                eprintln!("Error: quotation mark never closed. - Iscra-chan. (>_<)");
-                std::process::exit(-1);
+                return (&[], Err("Error: quotation mark never closed. - Iscra-chan. (>_<)".to_string()));
             },
+
             // SEARCH FOR Token::Var
             '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я' => {
-                for (i, c) in input_ref.iter().enumerate() {
+                for (i, c) in input_ref.iter().enumerate().skip(1) {
                     match c {
                         '0'..='9' | '_' | 'a'..='z' | 'A'..='Z' | 'а'..='я' | 'А'..='Я' => continue,
-                        _ => return (&input_ref[i..], Some(Self::Var(input_ref[..i].to_vec()))),
+                        _ => return (&input_ref[i..], Ok(Self::Var(input_ref[..i].to_vec()))),
                     }
                 }
-                return (&[], None);
+                return (&[], Ok(Self::Var(input_ref.to_vec())));
             },
             _ => {},
         };
-        (input_ref, None)
+        (input_ref, Err("Error: unexpected token. - Iscra-chan (>_<)".to_string()))
     }
 
     pub fn get_vec(mut input_ref: &[char]) -> Vec<Self> {
@@ -127,7 +128,7 @@ impl Token<Vec<char>> {
         'find_another_token:
         while (!input_ref.is_empty()) {
             // <ONLY-FOR-DEBUG>
-            // println!("{0:#?}", tokens_vec);
+            println!("{0:#?}", tokens_vec);
             // </ONLY-FOR-DEBUG>
 
             /*
@@ -189,10 +190,17 @@ impl Token<Vec<char>> {
             }
 
             /*
-            * FINALLY, ALL MISCELLANEOUS Token::Atom:
+            * FINALLY, ALL MISCELLANEOUS (CUSTOM) Token::Var
+            * as well as Token::Num, Token::Str:
             */
-            for (i, c) in input_ref.iter().enumerate() {
-
+            let token_result;
+            (input_ref, token_result) = Self::starts_with(input_ref);
+            match token_result {
+                Ok(token) => tokens_vec.push(token),
+                Err(why) => {
+                    eprintln!("\n{why}\n");
+                    std::process::exit(-1);
+                }
             }
         }
         return tokens_vec;
