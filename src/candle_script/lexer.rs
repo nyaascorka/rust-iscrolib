@@ -1,7 +1,6 @@
 use std::fmt::{self, Display, Debug, Formatter};
 use lazy_static::lazy_static;
 
-// LEXICAL ANALYSIS
 pub enum Token<T> {
     Num(T),
     Str(T),
@@ -60,11 +59,11 @@ lazy_static! {
         .into_iter()
         .map(|token| token.chars().collect())
         .collect();
-    static ref LBRS: Vec<Vec<char>> = ["("]
+    static ref LBRS: Vec<Vec<char>> = ["(", "[", "{"]
         .into_iter()
         .map(|token| token.chars().collect())
         .collect();
-    static ref RBRS: Vec<Vec<char>> = [")"]
+    static ref RBRS: Vec<Vec<char>> = [")", "]", "}"]
         .into_iter()
         .map(|token| token.chars().collect())
         .collect();
